@@ -19,9 +19,9 @@
             />
 
             <q-input
-              v-model="form.age"
+              v-model.number="form.age"
               label="Your age"
-              type="number"
+              inputmode="numeric"
               filled
               hint="Age in years"
               lazy-rules
@@ -29,7 +29,12 @@
               clearable
             />
 
-            <q-toggle v-model="form.accepted" label="I accept the terms and conditions" color="primary" />
+            <q-toggle
+              v-model="form.accepted"
+              label="I accept the terms and conditions"
+              color="primary"
+              :rules="[(val) => val || 'You must accept the terms']"
+            />
 
             <div class="row q-col-gutter-sm">
               <div class="col">
@@ -54,8 +59,8 @@ const $q = useQuasar()
 const formRef = ref(null)
 
 const initialState = () => ({
-  name: 'narongpol',
-  age: '20',
+  name: '',
+  age: '',
   accepted: false,
 })
 
@@ -69,27 +74,13 @@ const ageRules = [
   (val) => (val !== null && val !== undefined && `${val}`.trim().length > 0) || 'Please type your age',
   (val) => {
     const numeric = Number(val)
-    return (!Number.isNaN(numeric) && numeric > 0) || 'Please type a real age'
+    return (!Number.isNaN(numeric) && numeric > 0 && numeric < 150) || 'Please type a valid age'
   },
 ]
 
-const resetValidation = () => {
-  if (formRef.value) {
-    formRef.value.resetValidation()
-  }
-}
-
 const onSubmit = async () => {
   const valid = await formRef.value?.validate()
-  if (!valid || !form.accepted) {
-    if (!form.accepted) {
-      $q.notify({
-        type: 'negative',
-        message: 'Please accept the terms before submitting',
-      })
-    }
-    return
-  }
+  if (!valid) return
 
   $q.notify({
     type: 'positive',
@@ -99,6 +90,6 @@ const onSubmit = async () => {
 
 const onReset = () => {
   Object.assign(form, initialState())
-  resetValidation()
+  formRef.value?.resetValidation()
 }
 </script>
